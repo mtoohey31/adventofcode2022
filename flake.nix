@@ -12,6 +12,11 @@
           packages = [ gnumake ];
         };
 
+        go = mkShell {
+          name = "go";
+          packages = [ go gopls ];
+        };
+
         nix = mkShell {
           name = "nix";
           packages = [ nix nil ];
