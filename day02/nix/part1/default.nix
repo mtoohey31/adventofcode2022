@@ -22,7 +22,7 @@ let
     "C Z" = 3;
   };
 
-  input = readFile ../input;
+  input = readFile ../../input;
   scores = map (l: winScore.${l} + shapeScore."${(elemAt (splitString " " l) 1)}") (splitString "\n" input);
   answer = sum scores;
 in

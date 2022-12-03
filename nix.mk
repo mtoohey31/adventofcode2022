@@ -1,4 +1,4 @@
-answer: default.nix ../input
+answer: default.nix ../../input
 	nix eval --raw --file $< > $@
 
 .PHONY: clean

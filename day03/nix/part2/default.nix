@@ -1,5 +1,5 @@
 let
-  inherit (builtins) add attrNames filter foldl' head intersectAttrs isString length readFile split stringLength substring;
+  inherit (builtins) add attrNames elemAt filter foldl' head intersectAttrs length isString readFile split stringLength substring tail;
   splitString = sep: s: filter isString (split sep s);
   sum = foldl' add 0;
   stringToSet' = s: a: if stringLength s == 0 then a else
@@ -66,24 +66,30 @@ let
     Z = 52;
   };
 
-  input = readFile ../input;
+  input = readFile ../../input;
   rucksacks = splitString "\n" input;
-  duplicates = map
-    (r:
+  groups = foldl'
+    (l: r:
+      if length (head l) < 3
+      then [ ((head l) ++ [ r ]) ] ++ (tail l)
+      else [ [ r ] ] ++ l)
+    [ [ ] ]
+    rucksacks;
+  badges = map
+    (g:
       let
-        len = stringLength r;
-        firstHalf = substring 0 (len / 2) r;
-        firstHalfSet = stringToSet firstHalf;
-        secondHalf = substring (len / 2) len r;
-        secondHalfSet = stringToSet secondHalf;
-        inter = intersectAttrs firstHalfSet secondHalfSet;
-        interNames = attrNames inter;
+        firstSet = stringToSet (head g);
+        secondSet = stringToSet (elemAt g 1);
+        thirdSet = stringToSet (elemAt g 2);
+        firstSecondInter = intersectAttrs firstSet secondSet;
+        fullInter = intersectAttrs firstSecondInter thirdSet;
+        interNames = attrNames fullInter;
       in
       if length interNames != 1
-      then throw r
+      then throw (toString interNames)
       else head interNames
     )
-    rucksacks;
-  answer = sum (map (d: priority.${d}) duplicates);
+    groups;
+  answer = sum (map (d: priority.${d}) badges);
 in
 builtins.toString answer

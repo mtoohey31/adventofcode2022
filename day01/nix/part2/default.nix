@@ -9,7 +9,7 @@ let
     [ (-1) (-1) (-1) ];
   sum = foldl' add 0;
 
-  input = readFile ../input;
+  input = readFile ../../input;
   inventoryStrings = splitString "\n\n" input;
   inventoryLists = map (i: map (n: fromJSON n) (splitString "\n" i)) inventoryStrings;
   answer = sum (max3 (map sum inventoryLists));
