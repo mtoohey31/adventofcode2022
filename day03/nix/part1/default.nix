@@ -1,14 +1,8 @@
 let
-  inherit (builtins) add attrNames filter foldl' head intersectAttrs isString length readFile split stringLength substring;
-  splitString = sep: s: filter isString (split sep s);
-  sum = foldl' add 0;
-  stringToSet' = s: a: if stringLength s == 0 then a else
-  let
-    c = substring 0 1 s;
-    sx = substring 1 (stringLength s) s;
-  in
-  stringToSet' sx (a // { ${c} = null; });
-  stringToSet = s: stringToSet' s { };
+  inherit (builtins) attrNames head intersectAttrs length stringLength
+    substring;
+  inherit (import ../../../nix/lib.nix) attrOf splitString stringToSet sum
+    readFileTrimmed;
 
   priority = {
     a = 1;
@@ -66,24 +60,20 @@ let
     Z = 52;
   };
 
-  input = readFile ../../input;
+  input = readFileTrimmed ../../input;
   rucksacks = splitString "\n" input;
   duplicates = map
     (r:
       let
-        len = stringLength r;
-        firstHalf = substring 0 (len / 2) r;
-        firstHalfSet = stringToSet firstHalf;
-        secondHalf = substring (len / 2) len r;
-        secondHalfSet = stringToSet secondHalf;
-        inter = intersectAttrs firstHalfSet secondHalfSet;
-        interNames = attrNames inter;
+        l = stringLength r;
+        left = substring 0 (l / 2) r;
+        right = substring (l / 2) l r;
+        interSet = intersectAttrs (stringToSet left) (stringToSet right);
+        inter = attrNames interSet;
       in
-      if length interNames != 1
-      then throw r
-      else head interNames
+      assert length inter == 1; head inter
     )
     rucksacks;
-  answer = sum (map (d: priority.${d}) duplicates);
+  answer = sum (map (attrOf priority) duplicates);
 in
 builtins.toString answer

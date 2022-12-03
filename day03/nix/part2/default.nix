@@ -1,14 +1,7 @@
 let
-  inherit (builtins) add attrNames elemAt filter foldl' head intersectAttrs length isString readFile split stringLength substring tail;
-  splitString = sep: s: filter isString (split sep s);
-  sum = foldl' add 0;
-  stringToSet' = s: a: if stringLength s == 0 then a else
-  let
-    c = substring 0 1 s;
-    sx = substring 1 (stringLength s) s;
-  in
-  stringToSet' sx (a // { ${c} = null; });
-  stringToSet = s: stringToSet' s { };
+  inherit (builtins) attrNames elemAt foldl' head intersectAttrs length tail;
+  inherit (import ../../../nix/lib.nix) attrOf splitString stringToSet sum
+    readFileTrimmed;
 
   priority = {
     a = 1;
@@ -66,7 +59,7 @@ let
     Z = 52;
   };
 
-  input = readFile ../../input;
+  input = readFileTrimmed ../../input;
   rucksacks = splitString "\n" input;
   groups = foldl'
     (l: r:
@@ -78,18 +71,15 @@ let
   badges = map
     (g:
       let
-        firstSet = stringToSet (head g);
-        secondSet = stringToSet (elemAt g 1);
-        thirdSet = stringToSet (elemAt g 2);
-        firstSecondInter = intersectAttrs firstSet secondSet;
-        fullInter = intersectAttrs firstSecondInter thirdSet;
-        interNames = attrNames fullInter;
+        a = stringToSet (head g);
+        b = stringToSet (elemAt g 1);
+        c = stringToSet (elemAt g 2);
+        interSet = intersectAttrs (intersectAttrs a b) c;
+        inter = attrNames interSet;
       in
-      if length interNames != 1
-      then throw (toString interNames)
-      else head interNames
+      assert length inter == 1; head inter
     )
     groups;
-  answer = sum (map (d: priority.${d}) badges);
+  answer = sum (map (attrOf priority) badges);
 in
 builtins.toString answer

@@ -1,17 +1,16 @@
 let
-  inherit (builtins) add elemAt filter foldl' fromJSON isString lessThan readFile sort split;
-  splitString = sep: s: filter isString (split sep s);
+  inherit (builtins) foldl' head lessThan sort tail;
+  inherit (import ../../../nix/lib.nix) splitString sum readFileTrimmed toInt;
   max3 = foldl'
     (l: n:
-      if elemAt l 0 < n
-      then sort lessThan [ n (elemAt l 1) (elemAt l 2) ]
+      if head l < n
+      then sort lessThan (tail l) ++ [ n ]
       else l)
     [ (-1) (-1) (-1) ];
-  sum = foldl' add 0;
 
-  input = readFile ../../input;
+  input = readFileTrimmed ../../input;
   inventoryStrings = splitString "\n\n" input;
-  inventoryLists = map (i: map (n: fromJSON n) (splitString "\n" i)) inventoryStrings;
+  inventoryLists = map (i: map toInt (splitString "\n" i)) inventoryStrings;
   answer = sum (max3 (map sum inventoryLists));
 in
 builtins.toString answer

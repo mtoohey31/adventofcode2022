@@ -1,7 +1,6 @@
 let
-  inherit (builtins) add elemAt filter foldl' isString readFile split;
-  splitString = sep: s: filter isString (split sep s);
-  sum = foldl' add 0;
+  inherit (builtins) elemAt;
+  inherit (import ../../../nix/lib.nix) splitString sum readFileTrimmed;
 
   shapeScore = {
     X = 1;
@@ -22,8 +21,12 @@ let
     "C Z" = 3;
   };
 
-  input = readFile ../../input;
-  scores = map (l: winScore.${l} + shapeScore."${(elemAt (splitString " " l) 1)}") (splitString "\n" input);
+  input = readFileTrimmed ../../input;
+  scores = map
+    (l:
+      let shape = elemAt (splitString " " l) 1;
+      in winScore.${l} + shapeScore."${shape}")
+    (splitString "\n" input);
   answer = sum scores;
 in
 builtins.toString answer
