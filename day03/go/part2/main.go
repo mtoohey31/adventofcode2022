@@ -7,40 +7,43 @@ import (
 	"sort"
 )
 
+func tripleScan(s *bufio.Scanner, a, b, c *[]byte) bool {
+	if !s.Scan() {
+		return false
+	}
+	*a = []byte(s.Text())
+
+	if !s.Scan() {
+		return false
+	}
+	*b = []byte(s.Text())
+
+	if !s.Scan() {
+		return false
+	}
+	*c = []byte(s.Text())
+
+	return true
+}
+
+func sortBytes(b []byte) {
+	sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
+}
+
 func main() {
 	r, err := os.Open("../../input")
 	if err != nil {
 		panic(err)
 	}
 
-	badges := []byte{}
+	var a, b, c, badges []byte
 	s := bufio.NewScanner(r)
 
-	var a, b, c []byte
-	update := func() bool {
-		if !s.Scan() {
-			return false
-		}
-		a = []byte(s.Text())
-
-		if !s.Scan() {
-			return false
-		}
-		b = []byte(s.Text())
-
-		if !s.Scan() {
-			return false
-		}
-		c = []byte(s.Text())
-
-		return true
-	}
-
 OUTER:
-	for update() {
-		sort.Slice(a, func(i, j int) bool { return a[i] < a[j] })
-		sort.Slice(b, func(i, j int) bool { return b[i] < b[j] })
-		sort.Slice(c, func(i, j int) bool { return c[i] < c[j] })
+	for tripleScan(s, &a, &b, &c) {
+		sortBytes(a)
+		sortBytes(b)
+		sortBytes(c)
 
 		for len(a) > 0 && len(b) > 0 && len(c) > 0 {
 			switch {
