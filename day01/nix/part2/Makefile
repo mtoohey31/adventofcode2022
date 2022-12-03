@@ -1,1 +1,1 @@
-include ../../../nix.mk
+include ../../../rules/nix.mk
