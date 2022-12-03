@@ -14,7 +14,7 @@
 
         nix = mkShell {
           name = "nix";
-          packages = [ nix ];
+          packages = [ nix nil ];
         };
       };
     });
