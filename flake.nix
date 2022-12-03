@@ -19,7 +19,7 @@
 
         nix = mkShell {
           name = "nix";
-          packages = [ nix nil ];
+          packages = [ nix deadnix nil nixpkgs-fmt ];
         };
       };
     });
