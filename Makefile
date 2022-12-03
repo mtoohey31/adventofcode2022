@@ -16,3 +16,8 @@ clean::
 endef
 
 $(foreach part,$(foreach lang,$(foreach day,$(wildcard day??),$(wildcard $(day)/*)),$(wildcard $(lang)/part?)),$(eval $(call ANSWER_template,$(part))))
+
+.PHONY: diff
+all: diff
+diff:
+	for day in day??; do for part in 1 2; do diff -u --from-file "$$day"/*/"part$$part/answer"; done; done
