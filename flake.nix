@@ -12,6 +12,11 @@
           packages = [ gnumake ];
         };
 
+        c = mkShell {
+          name = "c";
+          packages = [ clang-tools ];
+        };
+
         go = mkShell {
           name = "go";
           packages = [ go gopls ];
