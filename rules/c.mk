@@ -1,7 +1,7 @@
 answer: main ../../input
 	./$< > $@
 
-main: main.o
+main: main.o $(EXTRA_OBJS)
 	$(CC) -Wall -o $@ $^
 
 .PHONY: lint

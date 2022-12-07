@@ -2,19 +2,19 @@
 #include <stdio.h>
 #include <string.h>
 
-struct dir_slice {
-  int len;
-  struct dir* ptr;
-};
+#define SLICE_NAME dir_slice
+#define SLICE_TYPE struct dir
+#include "slice.h"
 
-struct file_slice {
-  int len;
-  struct file* ptr;
-};
+#undef SLICE_NAME
+#undef SLICE_TYPE
+#define SLICE_NAME file_slice
+#define SLICE_TYPE struct file
+#include "slice.h"
 
 struct file {
   char* name;
-  long size;
+  ulong size;
 };
 
 struct dir {
@@ -24,42 +24,83 @@ struct dir {
   struct dir_slice sub_dirs;
 };
 
-struct dir_slice dir_slice_append(struct dir_slice s, struct dir d) {
-  struct dir_slice ns;
-  ns.len = s.len + 1;
-  ns.ptr = malloc(sizeof(struct dir) * ns.len);
-  memcpy(ns.ptr, s.ptr, sizeof(struct dir) * s.len);
-  if (s.len != 0) {
-    free(s.ptr);
-  }
-  ns.ptr[s.len] = d;
-  return ns;
+struct dir dir_new(char* name, struct dir* parent) {
+  struct dir nd;
+  nd.name = name;
+  nd.parent = parent;
+  nd.files = file_slice_new();
+  nd.sub_dirs = dir_slice_new();
+  return nd;
 }
 
-struct file_slice file_slice_append(struct file_slice s, struct file f) {
-  struct file_slice ns;
-  ns.len = s.len + 1;
-  ns.ptr = malloc(sizeof(struct file) * ns.len);
-  memcpy(ns.ptr, s.ptr, sizeof(struct file) * s.len);
-  if (s.len != 0) {
-    free(s.ptr);
+void dir_slice_append(struct dir_slice* s, struct dir d) {
+  if (s->len == s->cap) {
+    if (s->cap == 0) {
+      s-> len = (s->cap = 1);
+      s->ptr = malloc(sizeof(struct dir));
+      *s->ptr = d;
+      return;
+    }
+
+    s->cap *= 2;
+    struct dir* new_ptr = malloc(sizeof(struct dir) * s->cap);
+    memcpy(new_ptr, s->ptr, sizeof(struct dir) * s->len);
+    free(s->ptr);
+    s->ptr = new_ptr;
   }
-  ns.ptr[s.len] = f;
-  return ns;
+
+  s->ptr[s->len++] = d;
 }
 
-long dir_size(struct dir d, long* answer) {
-  long current_size = 0;
+void file_slice_append(struct file_slice* s, struct file f) {
+  if (s->len == s->cap) {
+    if (s->cap == 0) {
+      s-> len = (s->cap = 1);
+      s->ptr = malloc(sizeof(struct file));
+      *s->ptr = f;
+      return;
+    }
+
+    s->cap *= 2;
+    struct file* new_ptr = malloc(sizeof(struct file) * s->cap);
+    memcpy(new_ptr, s->ptr, sizeof(struct file) * s->len);
+    free(s->ptr);
+    s->ptr = new_ptr;
+  }
+
+  s->ptr[s->len++] = f;
+}
+
+struct result {
+  ulong size, answer;
+};
+
+struct result answer(struct dir d) {
+  struct result res;
+  res.size = (res.answer = 0);
+
   for (int i = 0; i < d.files.len; i++) {
-    current_size += d.files.ptr[i].size;
+    res.size += d.files.ptr[i].size;
   }
+
   for (int i = 0; i < d.sub_dirs.len; i++) {
-    current_size += dir_size(d.sub_dirs.ptr[i], answer);
+    struct result p = answer(d.sub_dirs.ptr[i]);
+    res.size += p.size;
+    res.answer += p.answer;
   }
-  if (current_size <= 100000) {
-    *answer += current_size;
+
+  if (res.size <= 100000) {
+    res.answer += res.size;
   }
-  return current_size;
+
+  return res;
+}
+
+char* fgetsnn(char* s, int n, FILE* f) {
+  char* res = fgets(s, n, f);
+  char* nl;
+  if (res && (nl = strchr(s, '\n'))) *nl = '\0';
+  return res;
 }
 
 int main() {
@@ -69,27 +110,16 @@ int main() {
     return 1;
   }
 
-  struct dir root;
-  root.files.len = 0;
-  root.sub_dirs.len = 0;
-  root.parent = NULL;
-
+  struct dir root = dir_new("/", NULL);
   struct dir* curr = &root;
 
   char buf[64];
-  if (!fgets(buf, 64, f)) {
-    fprintf(stderr, "first line of input was not a command\n");
+  if (!fgetsnn(buf, 64, f) || strcmp(buf, "$ cd /") != 0) {
+    fprintf(stderr, "unexpected first line of input\n");
     return 1;
   }
 
   while (1) {
-    char* nl;
-    if (!(nl = strchr(buf, '\n'))) {
-      fprintf(stderr, "buffer overflow\n");
-      return 1;
-    }
-    *nl = '\0';
-
     if (strncmp("cd", buf + 2, 2) == 0) {
       char* dest = buf + 5;
 
@@ -110,34 +140,21 @@ int main() {
         }
       }
 
-      struct dir nd;
-      nd.files.len = 0;
-      nd.sub_dirs.len = 0;
-      nd.name = strdup(dest);
-      nd.parent = curr;
-
-      curr->sub_dirs = dir_slice_append(curr->sub_dirs, nd);
+      dir_slice_append(&curr->sub_dirs, dir_new(strdup(dest), curr));
       curr = curr->sub_dirs.ptr + (curr->sub_dirs.len - 1);
 
 READ:
-      if (!fgets(buf, 64, f)) {
+      if (!fgetsnn(buf, 64, f)) {
         goto END;
       }
     } else if (strncmp("ls", buf + 2, 2) == 0) {
       while (1) {
-        if (!fgets(buf, 64, f)) {
+        if (!fgetsnn(buf, 64, f)) {
           goto END;
         }
         if (buf[0] == '$') {
           break;
         }
-
-        char* nl;
-        if (!(nl = strchr(buf, '\n'))) {
-          fprintf(stderr, "buffer overflow\n");
-          return 1;
-        }
-        *nl = '\0';
 
         char* spc = strchr(buf, ' ');
         *spc = '\0';
@@ -150,7 +167,7 @@ READ:
         nf.name = strdup(spc + 1);
         nf.size = atoi(buf);
 
-        curr->files = file_slice_append(curr->files, nf);
+        file_slice_append(&curr->files, nf);
       }
     } else {
       fprintf(stderr, "unrecognized command '%s'\n", buf);
@@ -159,7 +176,6 @@ READ:
   }
 
 END:;
-  long answer = 0;
-  dir_size(root, &answer);
-  printf("%ld", answer);
+  struct result res = answer(root);
+  printf("%ld", res.answer);
 }
