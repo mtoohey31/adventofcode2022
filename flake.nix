@@ -19,7 +19,7 @@
 
         c = mkShell {
           name = "c";
-          packages = [ clang-tools ];
+          packages = [ clang-tools valgrind ];
         };
 
         go = mkShell {
