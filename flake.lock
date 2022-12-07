@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "lsp_server": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1625787515,
+        "narHash": "sha256-q+B/pHtSH3a/aySYq+uc1BWjtGD9OGc8NJiTOEDv+zk=",
+        "owner": "jamesnvc",
+        "repo": "lsp_server",
+        "rev": "3df56aae027b6d1b329b45bcaad2f4b95db19d16",
+        "type": "github"
+      },
+      "original": {
+        "owner": "jamesnvc",
+        "repo": "lsp_server",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1668086072,
@@ -17,6 +33,7 @@
     },
     "root": {
       "inputs": {
+        "lsp_server": "lsp_server",
         "nixpkgs": "nixpkgs",
         "utils": "utils"
       }

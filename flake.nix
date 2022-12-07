@@ -2,9 +2,14 @@
   inputs = {
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
+
+    lsp_server = {
+      url = "github:jamesnvc/lsp_server";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, utils }: utils.lib.eachDefaultSystem (system:
+  outputs = { self, nixpkgs, utils, lsp_server }: utils.lib.eachDefaultSystem (system:
     with import nixpkgs { inherit system; }; {
       devShells = {
         default = mkShell {
@@ -25,6 +30,15 @@
         nix = mkShell {
           name = "nix";
           packages = [ nix deadnix nil nixpkgs-fmt ];
+        };
+
+        prolog = mkShell {
+          name = "prolog";
+          packages = [
+            (swiProlog.override {
+              extraPacks = [ "'file://${lsp_server}'" ];
+            })
+          ];
         };
       };
     });
