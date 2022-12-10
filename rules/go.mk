@@ -3,7 +3,7 @@ answer: main.go ../../input
 
 .PHONY: lint
 lint:
-	export FILES="$$(gofmt -l .)"; echo "$$FILES"; test -z "$$FILES"
+	export FILES="$$(gofmt -l .)"; echo -n "$$FILES"; test -z "$$FILES"
 
 .PHONY: clean
 clean:
