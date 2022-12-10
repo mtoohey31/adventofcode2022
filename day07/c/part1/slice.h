@@ -17,7 +17,7 @@ struct SLICE_NAME {
 
 #define MAKE_SLICE_NEW_NAME(x) MAKE_SLICE_NAME(x, _new)
 inline struct SLICE_NAME MAKE_SLICE_NEW_NAME(SLICE_NAME)() {
-  struct SLICE_NAME  s;
+  struct SLICE_NAME s;
   s.len = (s.cap = 0);
   s.ptr = NULL;
   return s;
