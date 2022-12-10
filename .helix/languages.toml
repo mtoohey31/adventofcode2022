@@ -1,0 +1,9 @@
+[[language]]
+name = "nim"
+scope = "source.nim"
+injection-regex = "nim"
+file-types = ["nim"]
+roots = ["nimble"]
+comment-token = "#"
+language-server = { command = "nimlsp" }
+indent = { tab-width = 2, unit = "  " }

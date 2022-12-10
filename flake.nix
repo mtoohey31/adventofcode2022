@@ -27,6 +27,11 @@
           packages = [ go gopls ];
         };
 
+        nim = mkShell {
+          name = "nim";
+          packages = [ nim nimlsp ];
+        };
+
         nix = mkShell {
           name = "nix";
           packages = [ nix deadnix nil nixpkgs-fmt ];
