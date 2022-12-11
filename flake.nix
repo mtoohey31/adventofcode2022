@@ -41,7 +41,7 @@
           name = "prolog";
           packages = [
             (swiProlog.override {
-              extraPacks = [ "'file://${lsp_server}'" ];
+              extraPacks = [ "'file://${lsp_server.outPath}'" ];
             })
           ];
         };
