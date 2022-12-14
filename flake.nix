@@ -3,48 +3,58 @@
     nixpkgs.url = "nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
 
+    lean4 = {
+      url = "github:leanprover/lean4";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     lsp_server = {
       url = "github:jamesnvc/lsp_server";
       flake = false;
     };
   };
 
-  outputs = { self, nixpkgs, utils, lsp_server }: utils.lib.eachDefaultSystem (system:
-    with import nixpkgs { inherit system; }; {
-      devShells = {
-        default = mkShell {
-          name = "adventofcode";
-          packages = [ gnumake ];
-        };
+  outputs = { self, nixpkgs, utils, lean4, lsp_server }:
+    utils.lib.eachDefaultSystem (system:
+      with import nixpkgs { inherit system; }; {
+        devShells = {
+          default = mkShell {
+            name = "adventofcode";
+            packages = [ gnumake ];
+          };
 
-        c = mkShell {
-          name = "c";
-          packages = [ clang-tools valgrind ];
-        };
+          c = mkShell {
+            name = "c";
+            packages = [ clang-tools valgrind ];
+          };
 
-        go = mkShell {
-          name = "go";
-          packages = [ go gopls ];
-        };
+          go = mkShell {
+            name = "go";
+            packages = [ go gopls ];
+          };
 
-        nim = mkShell {
-          name = "nim";
-          packages = [ nim nimlsp ];
-        };
+          lean4 = mkShell {
+            name = "lean4";
+            packages = [ lean4.packages.${system}.lean-all ];
+          };
 
-        nix = mkShell {
-          name = "nix";
-          packages = [ nix deadnix nil nixpkgs-fmt ];
-        };
+          nim = mkShell {
+            name = "nim";
+            packages = [ nim nimlsp ];
+          };
 
-        prolog = mkShell {
-          name = "prolog";
-          packages = [
-            (swiProlog.override {
-              extraPacks = [ "'file://${lsp_server.outPath}'" ];
-            })
-          ];
+          nix = mkShell {
+            name = "nix";
+            packages = [ nix deadnix nil nixpkgs-fmt ];
+          };
+
+          prolog = mkShell {
+            name = "prolog";
+            packages = [
+              (swiProlog.override {
+                extraPacks = [ "'file://${lsp_server.outPath}'" ];
+              })
+            ];
+          };
         };
-      };
-    });
+      });
 }
