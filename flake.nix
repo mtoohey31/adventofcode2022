@@ -55,6 +55,12 @@
               })
             ];
           };
+
+          rust = mkShell {
+            name = "rust";
+            packages = [ cargo rustc rust-analyzer rustfmt ];
+            RUST_SRC_PATH = rustPlatform.rustLibSrc;
+          };
         };
       });
 }
