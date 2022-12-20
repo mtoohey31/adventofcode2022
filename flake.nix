@@ -24,7 +24,7 @@
 
           c = mkShell {
             name = "c";
-            packages = [ clang-tools valgrind ];
+            packages = [ clang-tools valgrind man-pages man-pages-posix ];
           };
 
           go = mkShell {

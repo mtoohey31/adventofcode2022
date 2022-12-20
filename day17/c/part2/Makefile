@@ -1,0 +1,1 @@
+include ../../../rules/c.mk
