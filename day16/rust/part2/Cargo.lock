@@ -3,7 +3,7 @@
 version = 3
 
 [[package]]
-name = "day16-part1"
+name = "day16-part2"
 version = "0.1.0"
 dependencies = [
  "scanf",
