@@ -7,13 +7,9 @@
       url = "github:leanprover/lean4";
       inputs.nixpkgs.follows = "nixpkgs";
     };
-    lsp_server = {
-      url = "github:jamesnvc/lsp_server";
-      flake = false;
-    };
   };
 
-  outputs = { self, nixpkgs, utils, lean4, lsp_server }:
+  outputs = { self, nixpkgs, utils, lean4 }:
     utils.lib.eachDefaultSystem (system:
       with import nixpkgs { inherit system; }; {
         devShells = {
@@ -49,11 +45,7 @@
 
           prolog = mkShell {
             name = "prolog";
-            packages = [
-              (swiProlog.override {
-                extraPacks = [ "'file://${lsp_server.outPath}'" ];
-              })
-            ];
+            packages = [ swiProlog ];
           };
 
           rust = mkShell {
